@@ -1,9 +1,9 @@
 import React from "react";
-import { UserList } from "./practice1";
+import { PathSetup } from "./practice1";
 function App() {
 	return (
 		<div className="App">
-			<UserList />
+			<PathSetup />
 		</div>
 	);
 }

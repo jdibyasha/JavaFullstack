@@ -1,8 +1,9 @@
 package com.example.demo.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+// import jakarta.persistence.Entity;
+// import jakarta.persistence.Id;
+// import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "users1")
@@ -11,7 +12,12 @@ public class User {
     @Id
     private Integer id;
     private String name;
-    private String email;
+    private String password;
+
+    @ManyToOne
+    @JoinColumn(name="role_id") //this is the foreign key
+    private Role role;
+
 
     public Integer getId() {
         return id;
@@ -25,10 +31,18 @@ public class User {
     public void setName(String name) {
         this.name = name;
     }
-    public String getEmail() {
-        return email;
+    public String getPassword() {
+        return password;
     }
-    public void setEmail(String email) {
-        this.email = email;
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public Role getRole(){
+        return role;
+    }
+
+    public void setRole(Role role){
+        this.role=role;
     }
 }
