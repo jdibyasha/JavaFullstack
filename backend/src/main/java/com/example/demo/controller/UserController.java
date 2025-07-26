@@ -36,7 +36,14 @@ public class UserController {
             User user = userOpt.get();
             if(user.getPassword().equals(loginRequest.getPassword())){
                 String token=JwtUtil.generateToken(user.getName());
-                return ResponseEntity.ok(Map.of("token",token, "role",user.getRole().getName()));
+                String role = user.getRole().getName();
+                if("admin".equalsIgnoreCase(role)){
+                    List<User> allUsers = userRepository.findAll();
+                    return ResponseEntity.ok(Map.of("token",token,"role",role,"users",allUsers));
+                }else{
+                    return ResponseEntity.ok(Map.of("token",token,"role",role,"user",user));
+                }
+                // return ResponseEntity.ok(Map.of("token",token, "role",user.getRole().getName()));
             }
         }
         return ResponseEntity.status(401).body("Invalid username or password");
