@@ -30,7 +30,7 @@ import {
 } from "@mui/material";
 
 import { SelectChangeEvent } from "@mui/material/Select";
-
+import { useTranslation } from "react-i18next";
 import axios from "axios";
 
 interface Users {
@@ -60,6 +60,7 @@ export const UserList = () => {
 //Authentication with Authorization(Role based access permission)
 const UserLogin = () => {
 	const { login } = useAuth();
+	const { t, i18n } = useTranslation();
 	const [user, setUser] = useState<{ [key: string]: any }>({});
 	const navigate = useNavigate();
 	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -79,6 +80,9 @@ const UserLogin = () => {
 			.catch((e) => console.log(e));
 	};
 
+	const handleLanguageSelector = (lang: string) => {
+		i18n.changeLanguage(lang);
+	};
 	return (
 		<>
 			<Box
@@ -90,6 +94,14 @@ const UserLogin = () => {
 				}}
 			>
 				<Paper elevation={3} sx={{ padding: 4, borderRadius: 2, width: 350 }}>
+					<Box display="flex" justifyContent="flex-end" mb={2}>
+						<Button variant="text" onClick={() => handleLanguageSelector("en")}>
+							English
+						</Button>
+						<Button variant="text" onClick={() => handleLanguageSelector("fr")}>
+							French
+						</Button>
+					</Box>
 					<Typography align="center">LogIn</Typography>
 					<form onSubmit={handleSubmit}>
 						<TextField
@@ -118,7 +130,7 @@ const UserLogin = () => {
 							fullWidth
 							sx={{ marginTop: 2 }}
 						>
-							Login
+							{t("login")}
 						</Button>
 						<Typography variant="body2" align="center" sx={{ marginTop: 2 }}>
 							Don't have an account?{" "}
@@ -140,6 +152,9 @@ const UserLogin = () => {
 //SignUP
 const UserSignup = () => {
 	const [formData, setFormData] = useState<{ [key: string]: any }>({});
+	const [formDataErrors, setFormDataErrors] = useState<{
+		[key: string]: string;
+	}>({});
 	const handleChange = (
 		e:
 			| React.ChangeEvent<
@@ -147,10 +162,32 @@ const UserSignup = () => {
 			  >
 			| SelectChangeEvent
 	) => {
-		const { name, value, type } = e.target as HTMLInputElement;
+		const { name, value, type, checked } = e.target as HTMLInputElement;
+		if (type === "checkbox") {
+			setFormData({ ...formData, [name]: checked });
+		} else {
+			setFormData({ ...formData, [name]: value });
+		}
+	};
+	const validateForm = () => {
+		const errors: { [key: string]: string } = {};
+		if (formData.confirmPassword !== formData.password) {
+			errors.confirmPassword = "Passwords do not match";
+		}
+		return errors;
 	};
 	const handleSubmit = (e: React.FormEvent<any>) => {
 		e.preventDefault();
+		const errors = validateForm();
+		if (Object.keys(errors).length) {
+			setFormDataErrors(errors);
+		} else {
+			setFormData(formData);
+			axios
+				.post("http://localhost:8080/api/signup", formData)
+				.then((res) => console.log(res))
+				.catch((err) => console.log(err));
+		}
 	};
 	return (
 		<Box
@@ -161,7 +198,7 @@ const UserSignup = () => {
 				alignItems: "center",
 			}}
 		>
-			<Paper elevation={3} sx={{ padding: 4, borderradius: 2, width: 400 }}>
+			<Paper elevation={2} sx={{ padding: 4, borderradius: 2, width: 400 }}>
 				<Typography variant="h5" gutterBottom align="center">
 					Sign Up
 				</Typography>
@@ -186,6 +223,16 @@ const UserSignup = () => {
 						required
 					/>
 					<TextField
+						label="Mobile"
+						name="phone"
+						type="tel"
+						value={formData?.phone || ""}
+						onChange={handleChange}
+						fullWidth
+						margin="normal"
+						required
+					/>
+					<TextField
 						label="Password"
 						name="password"
 						value={formData?.password || ""}
@@ -202,6 +249,8 @@ const UserSignup = () => {
 						fullWidth
 						margin="normal"
 						required
+						error={!!formDataErrors.confirmPassword}
+						helperText={formDataErrors.confirmPassword}
 					/>
 					<FormControl component="fieldset" margin="normal">
 						<Typography variant="subtitle1" gutterBottom>
@@ -229,7 +278,7 @@ const UserSignup = () => {
 							<InputLabel>Country</InputLabel>
 							<Select
 								name="country"
-								value={formData?.country}
+								value={formData?.country || ""}
 								onChange={handleChange}
 								required
 							>
@@ -242,7 +291,7 @@ const UserSignup = () => {
 						<FormControlLabel
 							control={
 								<Checkbox
-									checked={formData?.termsAccepted}
+									checked={formData?.termsAccepted || false}
 									onChange={handleChange}
 									name="termsAccepted"
 									required
